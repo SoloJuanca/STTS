@@ -1,6 +1,8 @@
 const startButton = document.getElementById("startButton");
 const output = document.getElementById("output");
 
+let voicesPopulated = false;
+
 const profaneWordsMap = new Map([
   ["\\*\\*\\*\\*\\*", "joder"],
   ["J\\*\\*\\*\\*", "joder"],
@@ -76,6 +78,10 @@ function speak(text, synth) {
 
 // Agrega una función para llenar la lista desplegable con las voces disponibles
 function populateVoiceList(synth) {
+    if (voicesPopulated) {
+      return;
+    }
+
     const voiceSelect = document.getElementById("voiceSelect");
     const voices = synth.getVoices();
   
@@ -85,6 +91,8 @@ function populateVoiceList(synth) {
       option.setAttribute("value", index);
       voiceSelect.appendChild(option);
     });
+
+    voicesPopulated = true;
   }
   
   // Modifica la función speak para utilizar la voz seleccionada en la lista desplegable
@@ -105,6 +113,8 @@ function populateVoiceList(synth) {
   // Llama a la función populateVoiceList cuando las voces estén cargadas
   if (typeof speechSynthesis !== "undefined" && speechSynthesis.onvoiceschanged !== undefined) {
     speechSynthesis.onvoiceschanged = () => {
-      populateVoiceList(window.speechSynthesis);
+      if (!voicesPopulated) {
+        populateVoiceList(window.speechSynthesis);
+      }
     };
   }
