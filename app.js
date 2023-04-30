@@ -1,6 +1,25 @@
 const startButton = document.getElementById("startButton");
 const output = document.getElementById("output");
 
+const profaneWordsMap = new Map([
+  ["\\*\\*\\*\\*\\*", "joder"],
+  ["J\\*\\*\\*\\*", "joder"],
+  ["\\*\\*\\*\\*\\*\\*\\*", "pendejo"],
+  ["P\\*\\*\\*\\*\\*\\*", "pendejo"],
+  ["\\*\\*\\*\\*", "puta"],
+  ["P\\*\\*\\*", "puta"],
+  // Agrega más palabras y sus variaciones censuradas con y sin la primera letra según sea necesario
+]);
+
+function uncensor(text) {
+  let uncensoredText = text;
+  profaneWordsMap.forEach((uncensored, censored) => {
+    const regex = new RegExp(censored, "gi");
+    uncensoredText = uncensoredText.replace(regex, uncensored);
+  });
+  return uncensoredText;
+}
+
 startButton.addEventListener("click", () => {
   startButton.disabled = true;
   initVoiceRecognition();
@@ -21,8 +40,9 @@ async function initVoiceRecognition() {
       const result = event.results[event.results.length - 1];
       if (result.isFinal) {
         const text = result[0].transcript;
+        const uncensoredText = uncensor(text);
         output.innerText = text;
-        speak(text, synth);
+        speak(uncensoredText, synth);
       }
     };
 
