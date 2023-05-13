@@ -2,6 +2,7 @@ const startButton = document.getElementById("startButton");
 const output = document.getElementById("output");
 
 let voicesPopulated = false;
+let clearOutputTimeout; // Variable para almacenar el ID del timeout
 
 startButton.addEventListener("click", () => {
   startButton.disabled = true;
@@ -21,10 +22,19 @@ async function initVoiceRecognition() {
 
     recognition.onresult = (event) => {
       const result = event.results[event.results.length - 1];
+      const text = result[0].transcript;
+    
       if (result.isFinal) {
-        const text = result[0].transcript;
         output.innerText = text;
-        speak(text, synth);
+    
+        clearTimeout(clearOutputTimeout); // Cancelar el temporizador si se inicia una nueva frase
+    
+        speak(text, synth, () => {
+          // Establecer un temporizador de 3 segundos para borrar el contenido del elemento de salida
+          clearOutputTimeout = setTimeout(() => {
+            output.innerText = "";
+          }, 3000);
+        });
       }
     };
 
@@ -76,7 +86,7 @@ function populateVoiceList(synth) {
   }
   
   // Modifica la función speak para utilizar la voz seleccionada en la lista desplegable
-  function speak(text, synth) {
+  function speak(text, synth, onEnd) {
     const utterance = new SpeechSynthesisUtterance(text);
     const voiceSelect = document.getElementById("voiceSelect");
     const voices = synth.getVoices();
@@ -86,10 +96,11 @@ function populateVoiceList(synth) {
       utterance.voice = voices[selectedVoiceIndex];
     }
   
-    utterance.lang = "es-MX"; // Puedes eliminar esta línea si quieres que la voz se base en la selección del usuario
+    utterance.lang = "es-MX";
+    utterance.onend = onEnd;
     synth.speak(utterance);
   }
-  
+
   // Llama a la función populateVoiceList cuando las voces estén cargadas
   if (typeof speechSynthesis !== "undefined" && speechSynthesis.onvoiceschanged !== undefined) {
     speechSynthesis.onvoiceschanged = () => {
